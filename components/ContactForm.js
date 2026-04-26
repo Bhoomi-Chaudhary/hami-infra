@@ -6,95 +6,125 @@ export default function ContactForm() {
     name: "",
     email: "",
     phone: "",
+    service: "",
     message: ""
   });
+
+  const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(false); // ✅ NEW
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await fetch("/api/contact", {
-      method: "POST",
-      body: JSON.stringify(form),
-    });
+    if (loading) return; // ✅ prevent double click
 
-    alert("Message sent!");
+    setLoading(true);
+
+    try {
+      await fetch("/api/contact", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+
+      setToast("Message sent successfully");
+
+      // optional: clear form
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        service: "",
+        message: ""
+      });
+
+    } catch (error) {
+      setToast("Something went wrong");
+    }
+
+    setTimeout(() => {
+      setToast(null);
+    }, 2500);
+
+    setLoading(false);
   };
 
   return (
-    <section style={{
-      padding: "60px 20px",
-      background: "#F5F7FA"
-    }}>
-      <h2 style={{
-        textAlign: "center",
-        marginBottom: "30px",
-        color: "#0B1F3A"
-      }}>
-        Contact Us
-      </h2>
-
+    <>
       <form
         onSubmit={handleSubmit}
-        style={{
-          maxWidth: "500px",
-          margin: "0 auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: "15px",
-          background: "white",
-          padding: "25px",
-          borderRadius: "10px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
-        }}
+        className="space-y-5 bg-[#F5F7FA] p-6 rounded-lg shadow-md"
       >
+
         <input
-          placeholder="Name"
+          type="text"
+          placeholder="Your Name"
           required
-          style={inputStyle}
+          value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
+          className="w-full p-3 rounded-md bg-white text-gray-800 border border-gray-300"
         />
 
         <input
-          placeholder="Email"
+          type="email"
+          placeholder="Your Email"
           required
-          style={inputStyle}
+          value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
+          className="w-full p-3 rounded-md bg-white text-gray-800 border border-gray-300"
         />
 
         <input
-          placeholder="Phone"
-          style={inputStyle}
+          type="tel"
+          placeholder="Phone Number"
+          required
+          pattern="[0-9]{10}"
+          value={form.phone}
           onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          className="w-full p-3 rounded-md bg-white text-gray-800 border border-gray-300"
         />
+
+        <select
+          value={form.service}
+          onChange={(e) => setForm({ ...form, service: e.target.value })}
+          className="w-full p-3 rounded-md bg-white text-gray-800 border border-gray-300"
+        >
+          <option value="">Select Service</option>
+          <option value="Electrical">Electrical</option>
+          <option value="Mechanical">Mechanical</option>
+          <option value="Fire Safety">Fire Safety</option>
+          <option value="Commercial">Commercial</option>
+          <option value="AMC">AMC</option>
+        </select>
 
         <textarea
-          placeholder="Message"
+          placeholder="Your Message"
           required
-          style={{ ...inputStyle, height: "100px" }}
+          rows={4}
+          value={form.message}
           onChange={(e) => setForm({ ...form, message: e.target.value })}
+          className="w-full p-3 rounded-md bg-white text-gray-800 border border-gray-300"
         />
 
         <button
           type="submit"
-          style={{
-            background: "#D96A1A",
-            color: "white",
-            padding: "12px",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            fontWeight: "bold"
-          }}
+          disabled={loading}
+          className={`w-full py-3 rounded-md font-semibold transition ${
+            loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-[#D96A1A] text-white hover:opacity-90"
+          }`}
         >
-          Send Message
+          {loading ? "Sending..." : "Send Message"}
         </button>
+
       </form>
-    </section>
+
+      {/* TOAST */}
+      {toast && (
+        <div className="fixed top-5 right-5 bg-[#1a1a1a] text-white px-4 py-2 rounded-md border border-white/10 shadow-lg">
+          {toast}
+        </div>
+      )}
+    </>
   );
 }
-
-const inputStyle = {
-  padding: "10px",
-  borderRadius: "5px",
-  border: "1px solid #ccc",
-};
