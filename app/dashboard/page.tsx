@@ -1,16 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function Dashboard() {
+export default function DashboardPage() {
+  const [access, setAccess] = useState(false);
+  const [password, setPassword] = useState("");
   const [data, setData] = useState([]);
 
+  // fetch data AFTER access granted
   useEffect(() => {
-    fetch("/api/contact")
-      .then((res) => res.json())
-      .then((res) => setData(res));
-  }, []);
+    if (access) {
+      fetch("/api/contact")
+        .then((res) => res.json())
+        .then((res) => setData(res));
+    }
+  }, [access]);
 
+  // 🔒 LOGIN SCREEN
+  if (!access) {
+    return (
+      <div style={{ padding: "40px" }}>
+        <h2>Admin Login</h2>
+
+        <input
+          type="password"
+          placeholder="Enter password"
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button
+          onClick={() => {
+            if (password === "admin123") {
+              setAccess(true);
+            } else {
+              alert("Wrong password");
+            }
+          }}
+        >
+          Enter
+        </button>
+      </div>
+    );
+  }
+
+  // 📊 DASHBOARD (after login)
   return (
     <main style={{ padding: "20px" }}>
       <h1>Dashboard</h1>
