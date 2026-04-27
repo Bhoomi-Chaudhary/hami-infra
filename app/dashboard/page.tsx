@@ -11,10 +11,34 @@ export default function DashboardPage() {
   const [data, setData] = useState<any[]>([]);
   const [filter, setFilter] = useState("all");
 
+
+    const fetchData = () => {
+  fetch("/api/contact", {
+    cache: "no-store",
+  })
+    .then((res) => res.json())
+    .then((res) => {
+      if (Array.isArray(res)) {
+        setData(res);
+      } else {
+        console.error("Expected array, got:", res);
+        setData([]);
+      }
+    })
+    .catch((err) => {
+      console.error("Fetch error:", err);
+      setData([]);
+    });
+};
+
+
+
   // 🔄 Fetch data AFTER login
   useEffect(() => {
     if (access) {
-      fetch("/api/contact")
+      fetch("/api/contact", {
+  cache: "no-store"
+})
         .then((res) => res.json())
         .then((res) => {
           if (Array.isArray(res)) {

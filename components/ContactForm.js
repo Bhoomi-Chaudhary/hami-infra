@@ -11,24 +11,44 @@ export default function ContactForm() {
   });
 
   const [toast, setToast] = useState(null);
-  const [loading, setLoading] = useState(false); // ✅ NEW
+  const [loading, setLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleSubmit = async (e) => {
+  // 🔹 Opens confirmation modal
+  const handleSubmit = (e) => {
     e.preventDefault();
+    setShowConfirm(true);
+  };
 
-    if (loading) return; // ✅ prevent double click
+  // 🔹 Actual submission logic
+  const submitForm = async () => {
+    setShowConfirm(false);
+
+    // ✅ Validation
+    if (!form.service || form.service === "") {
+      setToast("Please select a service");
+      return;
+    }
+
+    if (loading) return;
 
     setLoading(true);
 
     try {
-      await fetch("/api/contact", {
+      const res = await fetch("/api/contact", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json", // 🔥 REQUIRED
+        },
         body: JSON.stringify(form),
       });
 
+      const data = await res.json();
+      console.log("Response:", data); // debug
+
       setToast("Message sent successfully");
 
-      // optional: clear form
+      // Reset form
       setForm({
         name: "",
         email: "",
@@ -38,23 +58,22 @@ export default function ContactForm() {
       });
 
     } catch (error) {
+      console.error(error);
       setToast("Something went wrong");
     }
 
-    setTimeout(() => {
-      setToast(null);
-    }, 2500);
+    setTimeout(() => setToast(null), 2500);
 
     setLoading(false);
   };
 
   return (
     <>
+      {/* FORM */}
       <form
         onSubmit={handleSubmit}
         className="space-y-5 bg-[#F5F7FA] p-6 rounded-lg shadow-md"
       >
-
         <input
           type="text"
           placeholder="Your Name"
@@ -84,6 +103,7 @@ export default function ContactForm() {
         />
 
         <select
+          required
           value={form.service}
           onChange={(e) => setForm({ ...form, service: e.target.value })}
           className="w-full p-3 rounded-md bg-white text-gray-800 border border-gray-300"
@@ -111,15 +131,48 @@ export default function ContactForm() {
           className={`w-full py-3 rounded-md font-semibold transition ${
             loading
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-[#D96A1A] text-white hover:opacity-90"
+              : "bg-[#D96A1A] text-white hover:opacity-90 active:scale-95"
           }`}
         >
           {loading ? "Sending..." : "Send Message"}
         </button>
-
       </form>
 
-      {/* TOAST */}
+      {/* 🔥 CONFIRM MODAL */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center max-w-sm w-full">
+            
+            <h3 className="text-lg font-semibold text-gray-800">
+              Confirm Submission
+            </h3>
+
+            <p className="text-gray-600 mt-2">
+              Are you sure you want to submit this enquiry?
+            </p>
+
+            <div className="flex justify-center gap-4 mt-5">
+              
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 bg-gray-300 rounded-md"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={submitForm}
+                className="px-4 py-2 bg-[#D96A1A] text-white rounded-md"
+              >
+                Yes, Submit
+              </button>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔥 TOAST */}
       {toast && (
         <div className="fixed top-5 right-5 bg-[#1a1a1a] text-white px-4 py-2 rounded-md border border-white/10 shadow-lg">
           {toast}
