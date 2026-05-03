@@ -47,9 +47,9 @@ export default function Footer() {
         {/* CONTACT */}
         <div>
           <h3 className="font-semibold mb-3">Contact</h3>
-          <p className="text-gray-300">+91 82795 51151</p>
-          <p className="text-gray-300">infohamiinfra@gmail.com</p>
-          <p className="text-gray-300 mt-2">Gurgaon, India</p>
+          <p className="text-gray-300">+91 48590 43267</p>
+          <p className="text-gray-300">infobussiness@gmail.com</p>
+          <p className="text-gray-300 mt-2">Noida, India</p>
         </div>
 
       </div>
