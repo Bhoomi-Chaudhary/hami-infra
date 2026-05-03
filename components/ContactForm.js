@@ -14,8 +14,16 @@ export default function ContactForm() {
   });
 
   const [toast, setToast] = useState(null);
+  const [toastType, setToastType] = useState("error"); // "error" | "success"
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [emailError, setEmailError] = useState("");
+
+  const showToast = (msg, type = "error") => {
+    setToast(msg);
+    setToastType(type);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // 🔹 Opens confirmation modal
   const handleSubmit = (e) => {
@@ -23,27 +31,56 @@ export default function ContactForm() {
     setShowConfirm(true);
   };
 
-  // 🔹 Actual submission logic with reCAPTCHA
+  // ✅ Check if email exists via Abstract API
+  const checkEmailExists = async (email) => {
+    try {
+      const res = await fetch(
+        `https://emailvalidation.abstractapi.com/v1/?api_key=${process.env.NEXT_PUBLIC_ABSTRACT_API_KEY}&email=${email}`
+      );
+      const data = await res.json();
+
+      // deliverability: "DELIVERABLE" means email exists
+      if (data.deliverability !== "DELIVERABLE") {
+        setEmailError("This email address does not exist or is invalid.");
+        return false;
+      }
+
+      setEmailError("");
+      return true;
+    } catch (error) {
+      console.error("Email check error:", error);
+      // If API fails, allow submission to avoid blocking real users
+      return true;
+    }
+  };
+
+  // 🔹 Actual submission logic
   const submitForm = useCallback(async () => {
     setShowConfirm(false);
 
-    // ✅ Validation
     if (!form.service || form.service === "") {
-      setToast("Please select a service");
+      showToast("Please select a service");
       return;
     }
 
     if (loading) return;
 
-    // ✅ Get reCAPTCHA token
     if (!executeRecaptcha) {
-      setToast("reCAPTCHA not ready, please try again");
+      showToast("reCAPTCHA not ready, please try again");
       return;
     }
 
     setLoading(true);
 
     try {
+      // ✅ Check email existence on submit
+      const emailValid = await checkEmailExists(form.email);
+      if (!emailValid) {
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Get reCAPTCHA token
       const token = await executeRecaptcha("contact_form");
 
       const res = await fetch("/api/contact", {
@@ -57,11 +94,11 @@ export default function ContactForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setToast(data.error || "Something went wrong");
+        showToast(data.error || "Something went wrong");
         return;
       }
 
-      setToast("Message sent successfully ✅");
+      showToast("Message sent successfully ✅", "success");
 
       // Reset form
       setForm({
@@ -73,10 +110,9 @@ export default function ContactForm() {
       });
     } catch (error) {
       console.error(error);
-      setToast("Something went wrong");
+      showToast("Something went wrong");
     } finally {
       setLoading(false);
-      setTimeout(() => setToast(null), 2500);
     }
   }, [form, loading, executeRecaptcha]);
 
@@ -96,14 +132,25 @@ export default function ContactForm() {
           className="w-full p-3 rounded-md bg-white text-gray-800 border border-gray-300"
         />
 
-        <input
-          type="email"
-          placeholder="Your Email"
-          required
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          className="w-full p-3 rounded-md bg-white text-gray-800 border border-gray-300"
-        />
+        {/* ✅ Email field with inline error */}
+        <div>
+          <input
+            type="email"
+            placeholder="Your Email"
+            required
+            value={form.email}
+            onChange={(e) => {
+              setForm({ ...form, email: e.target.value });
+              setEmailError("");
+            }}
+            className={`w-full p-3 rounded-md bg-white text-gray-800 border ${
+              emailError ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {emailError && (
+            <p className="text-red-500 text-sm mt-1">{emailError}</p>
+          )}
+        </div>
 
         <input
           type="tel"
@@ -181,7 +228,13 @@ export default function ContactForm() {
 
       {/* 🔥 TOAST */}
       {toast && (
-        <div className="fixed top-5 right-5 bg-[#1a1a1a] text-white px-4 py-2 rounded-md border border-white/10 shadow-lg">
+        <div
+          className={`fixed top-5 right-5 px-4 py-2 rounded-md border shadow-lg text-white ${
+            toastType === "success"
+              ? "bg-green-600 border-green-400"
+              : "bg-[#1a1a1a] border-white/10"
+          }`}
+        >
           {toast}
         </div>
       )}
