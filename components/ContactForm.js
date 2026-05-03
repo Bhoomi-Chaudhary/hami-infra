@@ -40,7 +40,7 @@ export default function ContactForm() {
       const data = await res.json();
 
       // deliverability: "DELIVERABLE" means email exists
-      if (data.deliverability !== "DELIVERABLE") {
+      if (data.deliverability === "UNDELIVERABLE") {
         setEmailError("This email address does not exist or is invalid.");
         return false;
       }
