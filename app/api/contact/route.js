@@ -14,10 +14,37 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// ✅ reCAPTCHA verification helper
+async function verifyRecaptcha(token) {
+  const res = await fetch(
+    `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`,
+    { method: "POST" }
+  );
+  const data = await res.json();
+  // score 0.0 = bot, 1.0 = human. 0.5 is a safe threshold
+  return data.success && data.score >= 0.5;
+}
+
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { name, email, phone, service, message } = body;
+    const { name, email, phone, service, message, recaptchaToken } = body;
+
+    // ✅ reCAPTCHA check first
+    if (!recaptchaToken) {
+      return Response.json(
+        { error: "reCAPTCHA token missing" },
+        { status: 400 }
+      );
+    }
+
+    const isHuman = await verifyRecaptcha(recaptchaToken);
+    if (!isHuman) {
+      return Response.json(
+        { error: "reCAPTCHA failed. You may be a bot." },
+        { status: 403 }
+      );
+    }
 
     // ✅ VALIDATION
     if (!name || !email || !phone || !message || !service) {
@@ -78,7 +105,6 @@ export async function POST(req) {
       message: "Form submitted successfully",
       data: saved,
     });
-
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Server error" }, { status: 500 });

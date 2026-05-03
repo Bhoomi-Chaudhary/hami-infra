@@ -1,13 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 export default function ContactForm() {
+  const { executeRecaptcha } = useGoogleReCaptcha();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
     service: "",
-    message: ""
+    message: "",
   });
 
   const [toast, setToast] = useState(null);
@@ -20,8 +23,8 @@ export default function ContactForm() {
     setShowConfirm(true);
   };
 
-  // 🔹 Actual submission logic
-  const submitForm = async () => {
+  // 🔹 Actual submission logic with reCAPTCHA
+  const submitForm = useCallback(async () => {
     setShowConfirm(false);
 
     // ✅ Validation
@@ -32,21 +35,33 @@ export default function ContactForm() {
 
     if (loading) return;
 
+    // ✅ Get reCAPTCHA token
+    if (!executeRecaptcha) {
+      setToast("reCAPTCHA not ready, please try again");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const token = await executeRecaptcha("contact_form");
+
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // 🔥 REQUIRED
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, recaptchaToken: token }),
       });
 
       const data = await res.json();
-      console.log("Response:", data); // debug
 
-      setToast("Message sent successfully");
+      if (!res.ok) {
+        setToast(data.error || "Something went wrong");
+        return;
+      }
+
+      setToast("Message sent successfully ✅");
 
       // Reset form
       setForm({
@@ -54,18 +69,16 @@ export default function ContactForm() {
         email: "",
         phone: "",
         service: "",
-        message: ""
+        message: "",
       });
-
     } catch (error) {
       console.error(error);
       setToast("Something went wrong");
+    } finally {
+      setLoading(false);
+      setTimeout(() => setToast(null), 2500);
     }
-
-    setTimeout(() => setToast(null), 2500);
-
-    setLoading(false);
-  };
+  }, [form, loading, executeRecaptcha]);
 
   return (
     <>
@@ -142,31 +155,25 @@ export default function ContactForm() {
       {showConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center max-w-sm w-full">
-            
             <h3 className="text-lg font-semibold text-gray-800">
               Confirm Submission
             </h3>
-
             <p className="text-gray-600 mt-2">
               Are you sure you want to submit this enquiry?
             </p>
-
             <div className="flex justify-center gap-4 mt-5">
-              
               <button
                 onClick={() => setShowConfirm(false)}
                 className="px-4 py-2 bg-gray-300 rounded-md"
               >
                 Cancel
               </button>
-
               <button
                 onClick={submitForm}
                 className="px-4 py-2 bg-[#D96A1A] text-white rounded-md"
               >
                 Yes, Submit
               </button>
-
             </div>
           </div>
         </div>
