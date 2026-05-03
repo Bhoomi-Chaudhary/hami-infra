@@ -33,26 +33,44 @@ export default function ContactForm() {
 
   // ✅ Check if email exists via Abstract API
   const checkEmailExists = async (email) => {
-    try {
-      const res = await fetch(
-        `https://emailvalidation.abstractapi.com/v1/?api_key=${process.env.NEXT_PUBLIC_ABSTRACT_API_KEY}&email=${email}`
-      );
-      const data = await res.json();
+  try {
+    const res = await fetch(
+      `https://emailreputation.abstractapi.com/v1/?api_key=${process.env.NEXT_PUBLIC_ABSTRACT_API_KEY}&email=${email}`
+    );
+    const data = await res.json();
+    console.log("Email check response:", data);
 
-      // deliverability: "DELIVERABLE" means email exists
-      if (data.deliverability === "UNDELIVERABLE") {
-        setEmailError("This email address does not exist or is invalid.");
-        return false;
-      }
-
-      setEmailError("");
-      return true;
-    } catch (error) {
-      console.error("Email check error:", error);
-      // If API fails, allow submission to avoid blocking real users
-      return true;
+    // ✅ Block if email format is invalid
+    if (data.email_deliverability?.is_format_valid === false) {
+      setEmailError("This email address format is invalid.");
+      return false;
     }
-  };
+
+    // ✅ Block if email is undeliverable
+    if (data.email_deliverability?.status === "undeliverable") {
+      setEmailError("This email address does not exist or is invalid.");
+      return false;
+    }
+
+    // ✅ Block disposable emails
+    if (data.email_quality?.is_disposable === true) {
+      setEmailError("Disposable emails are not allowed.");
+      return false;
+    }
+
+    // ✅ Block high risk emails
+    if (data.email_risk?.address_risk_status === "high") {
+      setEmailError("This email address appears to be invalid.");
+      return false;
+    }
+
+    setEmailError("");
+    return true;
+  } catch (error) {
+    console.error("Email check error:", error);
+    return true; // allow on API failure
+  }
+};
 
   // 🔹 Actual submission logic
   const submitForm = useCallback(async () => {
