@@ -48,15 +48,17 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold mb-3">Contact</h3>
           <p className="text-gray-300">Phone:
-            <a href="tel:+918796255342" className="hover:text-[#D96A1A] ml-2">+91 87962 55342</a>
+            <a href="tel:+918796255342" >
+              +91 87962 55342
+            </a>
           </p>
           <p className="text-gray-300">Email:
-            <a href="mailto:info@hamiinfra.com" className="hover:text-[#D96A1A] ml-2">
+            <a href="mailto:info@hamiinfra.com" >
               info@hamiinfra.com
             </a>
           </p>
           <p className="text-gray-300">Email:
-            <a href="mailto:infohamiinfra@gmail.com" className="hover:text-[#D96A1A] ml-2">
+            <a href="mailto:infohamiinfra@gmail.com" >
               infohamiinfra@gmail.com
             </a>
           </p>

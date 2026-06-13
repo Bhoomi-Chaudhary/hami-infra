@@ -5,10 +5,10 @@
 import { connectDB } from "@/lib/db";
 import Admin from "@/models/Admin";
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const {id} = await params;
   try {
     const { requestedById } = await req.json();
-    const { id } = params;
 
     if (!requestedById) {
       return Response.json({ error: "requestedById required" }, { status: 400 });
@@ -46,11 +46,12 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   }
 }
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const {id} = await params;
   try {
     await connectDB();
 
-    const admin = await Admin.findById(params.id).select("-password");
+    const admin = await Admin.findById(id).select("-password");
     if (!admin) {
       return Response.json({ error: "Admin not found" }, { status: 404 });
     }

@@ -5,10 +5,10 @@ import { connectDB } from "@/lib/db";
 import Admin from "@/models/Admin";
 import bcrypt from "bcryptjs";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const { currentPassword, newPassword } = await req.json();
-    const { id } = params;
 
     if (!currentPassword || !newPassword) {
       return Response.json({ error: "Missing required fields" }, { status: 400 });

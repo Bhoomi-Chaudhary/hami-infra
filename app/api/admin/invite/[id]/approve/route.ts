@@ -5,10 +5,10 @@ import { connectDB } from "@/lib/db";
 import Admin from "@/models/Admin";
 import AdminInvite from "@/models/AdminInvite";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const { adminId } = await req.json();
-    const { id } = params;
 
     if (!adminId) {
       return Response.json({ error: "adminId required" }, { status: 400 });
