@@ -47,9 +47,20 @@ export default function Footer() {
         {/* CONTACT */}
         <div>
           <h3 className="font-semibold mb-3">Contact</h3>
-          <p className="text-gray-300">+91 48590 43267</p>
-          <p className="text-gray-300">infobussiness@gmail.com</p>
-          <p className="text-gray-300 mt-2">Noida, India</p>
+          <p className="text-gray-300">Phone:
+            <a href="tel:+918796255342" className="hover:text-[#D96A1A] ml-2">+91 87962 55342</a>
+          </p>
+          <p className="text-gray-300">Email:
+            <a href="mailto:info@hamiinfra.com" className="hover:text-[#D96A1A] ml-2">
+              info@hamiinfra.com
+            </a>
+          </p>
+          <p className="text-gray-300">Email:
+            <a href="mailto:infohamiinfra@gmail.com" className="hover:text-[#D96A1A] ml-2">
+              infohamiinfra@gmail.com
+            </a>
+          </p>
+          <p className="text-gray-300 mt-2">Regd. Address - C/O RAMESHWER SINGH, PARIKRAMMA MARG, Mathura, Mathura, Mathura- 281001, Uttar Pradesh</p>
         </div>
 
       </div>
