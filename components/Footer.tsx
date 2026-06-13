@@ -60,7 +60,7 @@ export default function Footer() {
               infohamiinfra@gmail.com
             </a>
           </p>
-          <p className="text-gray-300 mt-2">Regd. Address - C/O RAMESHWER SINGH, PARIKRAMMA MARG, Mathura, Mathura, Mathura- 281001, Uttar Pradesh</p>
+          <p className="text-gray-300 mt-2">Address: Govindpur, PARIKRAMMA MARG, Mathura, Mathura, Mathura- 281001, Uttar Pradesh</p>
         </div>
 
       </div>
